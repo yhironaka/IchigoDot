@@ -8,8 +8,8 @@
 #define AUTO_SLEEP 1
 #define PSG_ON 1
 
-//#define ROTATE 0
-#define ROTATE 1 // 右回転
+#define ROTATE 2
+//#define ROTATE 1 // 右回転
 //#define ROTATE 3 // 左回転
 //#define ROTATE 2 // 反転
 
@@ -169,6 +169,8 @@ const char ypos[] = { 6, 8, 9, 102, 7, 101, 11, 10 };
 const char xpos[] = { 6, 102, 5, 103, 9, 10, 4, 3 };
 const char ypos[] = { 7, 101, 100, 2, 11, 8, 109, 108 };
 #endif
+
+int timenobtn = 0;
 
 short d0def = 0;
 short d1def = 0;
@@ -434,6 +436,26 @@ ff181818181818ff
 0884e43e3ee48408
 */
 void decode(unsigned char* src, unsigned char* dst) {
+	int len = 0;
+	for (int i = 0; i < 16; i++) {
+		int c = *(src + i);
+		if (c >= '0' && c <= '9')
+			c -= '0';
+		else if (c >= 'a' && c <= 'f')
+			c -= 'a' - 10;
+		else if (c >= 'A' && c <= 'F')
+			c -= 'A' - 10;
+		else
+			break;
+		len++;
+	}
+	if (len & 1)
+		len++;
+	len >>= 1;
+	for (int i = 0; i < 8 - len; i++) {
+		dst[i] = dst[i + len];
+	}
+	dst += 8 - len;
 	for (int i = 0; i < 16; i++) {
 		int c = *(src + i);
 		if (c >= '0' && c <= '9')
@@ -592,101 +614,6 @@ MATLED SHOW 183C7EFFFF7E3C18
 00011000
 */
 
-void uart() {
-#define SIZE_BUF 128
-	
-	char buf[SIZE_BUF];
-	int nbuf = 0;
-	for (int i = 0; i < SIZE_BUF; i++)
-		buf[i] = 0;
-	
-//	init_frame();
-//	load(); // 初回はデータクリアいるかも？
-	int mode = 1;
-	
-	unsigned char data[8];
-	for (int i = 0; i < 8; i++)
-		data[i] = 0;
-	
-	int n = 0;
-	int cnt = 0;
-	int nframe = 0;
-	for (int i = 0;; i++) {
-		while (uart0_test()) {
-			int c = uart0_getc();
-//			println(buf);
-			if (c == '\n') {
-				buf[nbuf] = '\0';
-				if (startsWith(buf, "MATLED SHOW ")) {
-					decode(buf + (9 + 3), data);
-					println("SHOW");
-				} else if (startsWith(buf, "MATLED SET ")) {
-					char* pbuf = buf + 11;
-					int nf = parseInt(pbuf);
-					if (nf >= 0 && nf <= N_FRAME) {
-						int n = indexOf(pbuf, ' ');
-						if (n >= 0) {
-							pbuf += n + 1;
-//							println(pbuf);
-							decode(pbuf, fr->frame[nf]);
-							decode(pbuf, data); // 停止時の画面にも表示
-							n = indexOf(pbuf, ' ');
-							int nw = 100;
-							if (n >= 0) {
-								pbuf += n + 1;
-								nw = parseInt(pbuf);
-							}
-							fr->waitms[nf] = nw;
-						}
-					}
-				} else if (startsWith(buf, "MATLED CLEAR")) {
-					mode = 0;
-					init_frame();
-				} else if (startsWith(buf, "MATLED RUN")) {
-					mode = 1;
-					println("RUN");
-				} else if (startsWith(buf, "MATLED STOP")) {
-					mode = 0;
-					println("STOP");
-				} else if (startsWith(buf, "MATLED SAVE")) {
-					save();
-					println("SAVE");
-				} else if (startsWith(buf, "MATLED LOAD")) {
-					load();
-					println("LOAD");
-				}
-				nbuf = 0;
-				continue;
-			} else if (c == '\r') {
-			} else {
-				if (nbuf < SIZE_BUF - 1)
-					buf[nbuf++] = c;
-			}
-		}
-		if (mode == 0) {
-			setMatrix(data);
-		} else {
-			setMatrix(fr->frame[nframe]);
-			
-			cnt++;
-			if (cnt >= fr->waitms[nframe]) {
-				cnt = 0;
-				int bknframe = nframe;
-				for (;;) {
-					nframe++;
-					if (nframe == N_FRAME)
-						nframe = 0;
-					if (fr->waitms[nframe])
-						break;
-					if (bknframe == nframe) {
-						mode = 0;
-						break;
-					}
-				}
-			}
-		}
-	}
-}
 
 void slowClock() {
 	// watchdog
@@ -717,7 +644,6 @@ void deepPowerDown() {
 	asm("wfi");
 }
 
-int timenobtn = 0;
 void sleep_tick() {
 	if (ux_state())
 		timenobtn = 0;
@@ -726,73 +652,183 @@ void sleep_tick() {
 		deepPowerDown();
 }
 
-char buf[8];
-#define PSET(x,y) buf[x & 7] |= 1 << (y & 7)
-#define PRESET(x,y) buf[x & 7] &= ~(1 << (y & 7))
-#define CLS(n) for (int i = 0; i < 8; i++) buf[i] = n ? 0xff : 0;
-//#define FILL(l) *(long*)buf = l // ng
-#define FILL(l) decode2(l, (unsigned char*)buf)
-#define FLUSH() setMatrix2(buf)
+char dispBuf[8];
+#define PSET(x,y) dispBuf[x & 7] |= 1 << (y & 7)
+#define PRESET(x,y) dispBuf[x & 7] &= ~(1 << (y & 7))
+#define CLS(n) for (int i = 0; i < 8; i++) dispBuf[i] = n ? 0xff : 0;
+//#define FILL(l) *(long*)dispBuf = l // ng
+#define FILL(l) decode2(l, (unsigned char*)dispBuf)
+#define FLUSH() setMatrix2(dispBuf)
 	
 #define PTN_3 "0038040438040438"
 #define PTN_2 "003804040810203c"
 #define PTN_1 "001828080808083c"
 #define PTN_GO "0073958585b59576"
 	
-	char* PTN_NUM[] = {
-		"708898a8c8887000",
-		"2060a0202020f800",
-		"7088080830c0f800",
-		"7088083008887000",
-		"3050909090f81000",
-		"f880f00808887000",
-		"7080f08888887000",
-		"f888081010202000",
-		"7088887088887000",
-		"7088888878087000",
-"70888888f8888800",
-"f04848704848f000",
-"7088808080887000",
-"f04848484848f000",
-"f88080f88080f800",
-"f88080f880808000",
-"7088808098887800",
-"888888f888888800",
-"7020202020207000",
-"3810101010906000",
-"8890a0c0a0908800",
-"808080808080f800",
-"88d8d8a8a8a88800",
-"88c8c8a898988800",
-"7088888888887000",
-				"f0888888f0808000"
-				/*
-		70888888a8906800
-f0888888f0908800
-7088807008887000
-f820202020202000
-8888888888887000
-8888505050202000
-8888a8a8a8505000
-8888502050888800
-8888502020202000
-f80810204080f800
-7040404040407000
-8850f820f8202000
-7010101010107000
-2050880000000000
-000000000000f800
-4020100000000000
-0000700878887400
-8080b0c88888f000
-0000708880887000
-0808689888887800
-00007088f8807000
-		*/
-			};
+char* PTN_NUM[] = {
+	"708898a8c8887000",
+	"2060a0202020f800",
+	"7088080830c0f800",
+	"7088083008887000",
+	"3050909090f81000",
+	"f880f00808887000",
+	"7080f08888887000",
+	"f888081010202000",
+	"7088887088887000",
+	"7088888878087000",
+	"70888888f8888800",
+	"f04848704848f000",
+	"7088808080887000",
+	"f04848484848f000",
+	"f88080f88080f800",
+	"f88080f880808000",
+	"7088808098887800",
+	"888888f888888800",
+	"7020202020207000",
+	"3810101010906000",
+	"8890a0c0a0908800",
+	"808080808080f800",
+	"88d8d8a8a8a88800",
+	"88c8c8a898988800",
+	"7088888888887000",
+	"f0888888f0808000"
+/*
+	70888888a8906800
+	f0888888f0908800
+	7088807008887000
+	f820202020202000
+	8888888888887000
+	8888505050202000
+	8888a8a8a8505000
+	8888502050888800
+	8888502020202000
+	f80810204080f800
+	7040404040407000
+	8850f820f8202000
+	7010101010107000
+	2050880000000000
+	000000000000f800
+	4020100000000000
+	0000700878887400
+	8080b0c88888f000
+	0000708880887000
+	0808689888887800
+	00007088f8807000
+*/
+};
 	
 #define WAIT(n) wait(n * 10)
 
+void uart() {
+#define SIZE_BUF 128
+	char inputBuf[SIZE_BUF];
+	int nbuf = 0;
+	for (int i = 0; i < SIZE_BUF; i++)
+		inputBuf[i] = 0;
+	
+	CLS(1);
+//init_frame	init_frame();
+//	load(); // 初回はデータクリアいるかも？
+	int mode = 0;
+	
+	unsigned char data[8];
+	for (int i = 0; i < 8; i++)
+		data[i] = 0;
+	
+	int n = 0;
+	int cnt = 0;
+	int nframe = 0;
+	for (int i = 0;; i++) {
+		// deepSleepしない
+		timenobtn = 0;
+		while (uart0_test()) {
+			int c = uart0_getc();
+			if (c == '\n') {
+				inputBuf[nbuf] = '\0';
+				if (startsWith(inputBuf, "MATLED SHOW ")) {
+					char c = *data;
+					decode(inputBuf + (9 + 3), data);
+					xprintf("MATLED SHOW %02X\n", (int)c);
+				} else if (startsWith(inputBuf, "MATLED PUSH ")) {
+					char hex[3];
+					int n = parseInt(inputBuf + (9 + 3));
+					int n1 = (n >> 4) & 0xf;
+					int n2 = n & 0xf;
+					hex[0] = n1 <= 9 ? '0' + n1 : 'A' + n1 - 10;
+					hex[1] = n2 <= 9 ? '0' + n2 : 'A' + n2 - 10;
+					hex[2] = 0;
+					decode(hex, data);
+					xprintf("MATLED PUSH %s\n", hex);
+				} else if (startsWith(inputBuf, "MATLED SET ")) {
+					char* pbuf = inputBuf + 11;
+					int nf = parseInt(pbuf);
+					if (nf >= 0 && nf <= N_FRAME) {
+						int n = indexOf(pbuf, ' ');
+						if (n >= 0) {
+							pbuf += n + 1;
+//							println(pbuf);
+							decode(pbuf, fr->frame[nf]);
+							decode(pbuf, data); // 停止時の画面にも表示
+							n = indexOf(pbuf, ' ');
+							int nw = 100;
+							if (n >= 0) {
+								pbuf += n + 1;
+								nw = parseInt(pbuf);
+							}
+							fr->waitms[nf] = nw;
+						}
+					}
+				} else if (startsWith(inputBuf, "MATLED CLEAR")) {
+					mode = 0;
+					init_frame();
+				} else if (startsWith(inputBuf, "MATLED RUN")) {
+					mode = 1;
+					println("RUN");
+				} else if (startsWith(inputBuf, "MATLED STOP")) {
+					mode = 0;
+					println("STOP");
+				} else if (startsWith(inputBuf, "MATLED SAVE")) {
+					save();
+					println("SAVE");
+				} else if (startsWith(inputBuf, "MATLED LOAD")) {
+					load();
+					println("LOAD");
+				}
+				nbuf = 0;
+				continue;
+			} else if (c == '\r') {
+			} else {
+				if (nbuf < SIZE_BUF - 1)
+					inputBuf[nbuf++] = c;
+			}
+		}
+		if (mode == 0) {
+			for (int k = 0; k < 8; k++)
+				dispBuf[k] = data[k];
+			FLUSH();
+//			setMatrix(data);
+		} else {
+			setMatrix(fr->frame[nframe]);
+			
+			cnt++;
+			if (cnt >= fr->waitms[nframe]) {
+				cnt = 0;
+				int bknframe = nframe;
+				for (;;) {
+					nframe++;
+					if (nframe == N_FRAME)
+						nframe = 0;
+					if (fr->waitms[nframe])
+						break;
+					if (bknframe == nframe) {
+						mode = 0;
+						break;
+					}
+				}
+			}
+		}
+	}
+}
 
 // buf
 void matrix_put(char* s, int dx, int dy, int dw, int dh) {
@@ -971,6 +1007,15 @@ void app_hit10() { // 10秒あてゲーム
 			if (ux_btn())
 				break;
 		}
+		// 長押しでゲーム切り替え
+		systick = 0;
+		for (;;) {
+			WAIT(10);
+			if (!ux_state())
+				break;
+			if (systick > 10000)
+				return;
+		}
 		playMML("C");
 		FILL(PTN_3);
 		FLUSH();
@@ -1000,7 +1045,7 @@ void app_hit10() { // 10秒あてゲーム
 				break;
 			}
 			bkbtn = btn;
-			setMatrix2(buf);
+			setMatrix2(dispBuf);
 			wait(10);
 		}
 		unsigned int score = (10 * 100000 - systick) / 1000;
@@ -1138,20 +1183,31 @@ void app_renda() { // 連打ゲーム
 
 #include "anim_newyear.h"
 
-boolean animate(char* data, int len) {
+boolean animate(const unsigned char* data, int len) {
+	char c;	// 数珠つなぎ対応
+
 	for (int loop = 0; loop < 10; loop++) {
 		for (int i = 0; i < len - 8; i++) {
 			timenobtn = 0;
 			//				setMatrix2(data + i);
+			c = *dispBuf;	// 次のMATLEDに送るデータ
+
 			CLS(1);
 			for (int k = 0; k < 8; k++)
-				buf[k] = data[k + i];
+				dispBuf[k] = data[k + i];
 			FLUSH();
-			//				if (uart0_test())
+			xprintf("MATLED SHOW %02X\n", (int)c);
+
+			// 90ms待ち
 			for (int j = 0; j < 90; j++) {
 				WAIT(1);
+				// アニメーション中にボタンが押されたら次のミニゲーム
 				if (ux_btn()) {
 					return 1;
+				}
+				// アニメーション中にUART入力が有れば、MATLEDモード
+				if (uart0_test()) {
+					return 0;
 				}
 			}
 		}
@@ -1208,10 +1264,13 @@ int main() {
 		WAIT(10);
 	}
 	for (;;) {
-		animate(DATA_ANIM, LEN_DATA_ANIM);
+		if (animate(DATA_ANIM, LEN_DATA_ANIM) == 0){
+			uart();
+		}
 		app_mikuji();
 //		app_keytest();
 		app_renda();
+		app_hit10();
 	}
 	return 0;
 }
