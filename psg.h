@@ -1,6 +1,9 @@
 // playMML
 
-void toggleSounder();
+void toggleSounder() {
+	GPIO1MASKED[1 << 5] = ~GPIO1MASKED[1 << 5];
+}
+
 void wait(int);
 
 int soundon = 0;
