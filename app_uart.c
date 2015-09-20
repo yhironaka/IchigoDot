@@ -98,7 +98,7 @@ void show(const char *input_buf , char *data) {
 	for (int j = 0 ; j < 8 ; j++) flow_data[j] = (int)data[j];
 
 	// 表示の更新
-	len = decode(input_buf + 12, data);
+	len = decode_left2right(input_buf + 12, data);
 
 	// 次のマトリクスに送るデータ
 	xprintf("MATLED SHOW ");
@@ -119,7 +119,7 @@ void push(const char *input_buf , char *data) {
 	int flow_data = (int)data[0];
 
 	// 表示の更新
-	decode(hex, data);
+	decode_left2right(hex, data);
 
 	// 次のマトリクスに送るデータ
 	xprintf("MATLED PUSH %d\n", flow_data);	
@@ -132,8 +132,8 @@ void set_anim(const char *input_buf , char *data , struct Frame *fr) {
 		int n = indexOf(pbuf, ' ');
 		if (n >= 0) {
 			pbuf += n + 1;			// 表示データ取得
-			decode2(pbuf, fr[nf].frame);
-			decode2(pbuf, data); 	// 停止時の画面にも表示
+			decode_top2bottom(pbuf, fr[nf].frame);
+			decode_top2bottom(pbuf, data); 	// 停止時の画面にも表示
 			n = indexOf(pbuf, ' ');
 			int nw = 100;
 			if (n >= 0) {
@@ -210,9 +210,9 @@ void app_uart() {
 			}
 		}
 		if (mode == 0) {
-			setMatrix2(data);
+			set_matrix(data);
 		} else {
-			setMatrix2(fr[nframe].frame);
+			set_matrix(fr[nframe].frame);
 			WAIT(1);
 			cnt++;
 			if (cnt >= fr[nframe].waitms) { // 待ち時間を過ぎたら

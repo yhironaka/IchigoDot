@@ -12,6 +12,7 @@ void app_uart();
 void app_renda();
 void app_hit10();
 void app_mikuji();
+void app_bitman();
 
 #define PTN_3  "0038040438040438" // 3
 #define PTN_2  "003804040810203c" // 2

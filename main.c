@@ -132,6 +132,7 @@ int main() {
 		app_mikuji();
 		app_renda();
 		app_hit10();
+		app_bitman();
 	}
 	return 0;
 }

@@ -158,22 +158,7 @@ void matrixled_tick() {
 	if (g_matcnt == 64)	g_matcnt = 0;
 }
 
-void setMatrix(const char* data) {
-	for (int j = 0; j < 8; j++) {
-		char d = data[j];
-		for (int i = 0; i < 8; i++) {
-			if (d & (1 << i)) {
-				matrixled_on(i, j);
-			} else {
-				matrixled_off();
-			}
-			wait(1);
-		}
-	}
-	matrixled_off();
-}
-
-void setMatrix2(const char* data) {
+void set_matrix(const char* data) {
 	for (int j = 0; j < 8; j++) {
 		g_matbuf[j] = data[j];
 	}
@@ -198,16 +183,16 @@ void CLS(int n) {
 }
 
 void FILL(const char *hex_string) {
-	decode2(hex_string, g_disp_buf);
+	decode_top2bottom(hex_string, g_disp_buf);
 }
 
 void FLUSH() {
-	setMatrix2(g_disp_buf);
+	set_matrix(g_disp_buf);
 }
 
-void matrix_put(const char* s, int dx, int dy, int dw, int dh) {
+void put_matrix(const char* s, int dx, int dy, int dw, int dh) {
 	char src[8];
-	decode2(s, src);
+	decode_top2bottom(s, src);
 	for (int i = 0; i < dw; i++) {
 		for (int j = 0; j < dh; j++) {
 			int x = dx + i;

@@ -61,8 +61,8 @@ void println(const char* s) {
 	uart0_putc('\n');
 }
 
-// 表示されている列をずらして変換
-int decode(const char* src, char* dst) {
+// 左から右に、表示されている列をずらして変換
+int decode_left2right(const char* src, char* dst) {
 	int len = 0;
 	for (int i = 0; i < 16; i++) {
 		int c = *(src + i);
@@ -91,8 +91,8 @@ int decode(const char* src, char* dst) {
 	return len;
 }
 
-// 表示を初期化して、srcをdestに変換
-void decode2(const char* src, char* dst) {
+// 上から下へ、表示を初期化して、srcをdestに変換
+void decode_top2bottom(const char* src, char* dst) {
 	for (int j = 0; j < 8; j++) {
 		dst[j] = 0;
 	}

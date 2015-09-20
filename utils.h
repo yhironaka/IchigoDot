@@ -11,11 +11,11 @@ IchigoDot Utilitys Header
 #define false 0
 
 boolean startsWith(const char* target, const char* key);
-int parseInt(const char* target);
-int indexOf(const char* target, char search_char);
+int  parseInt(const char* target);
+int  indexOf(const char* target, char search_char);
 void println(const char* string);
-int decode(const char* src, char* dst);
-void decode2(const char* src, char* dst);
+int  decode_left2right(const char* src, char* dst);
+void decode_top2bottom(const char* src, char* dst);
 unsigned int rnd();
 
 #endif

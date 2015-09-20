@@ -11,32 +11,40 @@
 ** License: CC BY http://fukuno.jig.jp/
 ***************************************************/
 
-boolean bitman() {
-	char data[16];
-	decode2((char*)"0098e41f1fe49800", data);
-	decode2((char*)"0884e43e3ee48408", data + 8);
-	
-	int ptn = 0;
-	for (int i = 0; i < 100 * 6; i++) {
-		setMatrix((char*)(data + ptn * 8));
-		if (i % 100 == 99) ptn = 1 - ptn;
-		if (uart0_test()) return 0;
-	}
-	return 1;
-}
+#include "main.h"
+#include "apps.h"
+#include "psg.h"
+#include "matrixled.h"
 
-void bitman2() {
+void app_bitman() {
 	char data[16];
-	decode2("0098e41f1fe49800", data);
-	decode2("0884e43e3ee48408", data + 8);
-	
+	decode_left2right("0098e41f1fe49800", data);
+	decode_left2right("0884e43e3ee48408", data + 8);
 	int ptn = 0;
+	int exit_triger = 0;
+	int exit_count = 0;
+
+	set_matrix(data);
 	playMML("CDE2CDE2");
+	WAIT(1000);
+	set_systick(0);
 	for (;;) {
-		setMatrix2((char*)(data + ptn * 8));
-		wait(10000);
-		ptn = 1 - ptn;
-		
-		if (ux_btn()) ptn = 1 - ptn;
+		wait(1);
+		set_matrix(data + ptn * 8);
+		if (get_systick() > 10000) {
+			ptn = 1 - ptn;	// パターン切り替え
+			set_systick(0);	
+		}
+		if (ux_state()) {
+			if (exit_count == 3) return;
+			if (exit_triger == get_systick()) exit_count++;
+			if (exit_triger == 0) {
+				playMML("C8");
+				exit_triger = get_systick();
+			}
+		}
+		if (!ux_state()) {
+			exit_triger = 0;
+		}
 	}
 }

@@ -52,8 +52,8 @@ void app_mikuji() {
 		playMML("G8");
 		for (int k = 0; k < 8; k++) {
 			CLS(0);
-			matrix_put("c152f4d2014a4530", 0, -k, 8, 8);
-			matrix_put("00494bef4da9af00", 0, -k + 8, 8, 8);
+			put_matrix("c152f4d2014a4530", 0, -k, 8, 8);
+			put_matrix("00494bef4da9af00", 0, -k + 8, 8, 8);
 			FLUSH();
 			WAIT(200 - k * 20);
 		}
@@ -71,10 +71,10 @@ void app_mikuji() {
 		ux_btn();
 		for (;;) {
 			CLS(0);
-			matrix_put(PTN_UP[view], 0, -(i % 8), 4, 8); // 大
-			matrix_put(PTN_UP[next], 0, 8 - i % 8, 4, 8); // 中
-			matrix_put(PTN_DOWN[view2], 4, -(j % 8), 4, 8); // 吉
-			matrix_put(PTN_DOWN[next2], 4, 8 - j % 8, 4, 8); // 吉
+			put_matrix(PTN_UP[view], 0, -(i % 8), 4, 8); // 大
+			put_matrix(PTN_UP[next], 0, 8 - i % 8, 4, 8); // 中
+			put_matrix(PTN_DOWN[view2], 4, -(j % 8), 4, 8); // 吉
+			put_matrix(PTN_DOWN[next2], 4, 8 - j % 8, 4, 8); // 吉
 			FLUSH();
 			WAIT(1);
 			if (!btn) {
@@ -128,8 +128,8 @@ void app_mikuji() {
 
 		ux_btn();
 		for (;;) {
-			matrix_put(PTN_UP[view], 0, -(i % 8), 4, 8); // 大
-			matrix_put(PTN_DOWN[view2], 4, 0, 4, 8); // 吉
+			put_matrix(PTN_UP[view], 0, -(i % 8), 4, 8); // 大
+			put_matrix(PTN_DOWN[view2], 4, 0, 4, 8); // 吉
 			FLUSH();
 			WAIT(10);
 			if (ux_btn()) break;

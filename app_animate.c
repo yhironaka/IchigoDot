@@ -25,7 +25,7 @@ boolean app_animate(const char* data, int len) {
 			get_matrix(disp_buf);
 
 			CLS(1);
-			setMatrix2((char *)data+i);
+			set_matrix((char *)data+i);
 			xprintf("MATLED SHOW %02X\n", (int)disp_buf[0]);
 
 			// 90ms待ち
