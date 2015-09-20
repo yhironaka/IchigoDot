@@ -1,5 +1,7 @@
 IchigoDotS
 ==========
+yhironaka@gmail.com 廣中靖久
+
 LPC1114を利用して作成できるワンキーゲーム機、IchigoDotのファームウェアをforkして、機能追加しています。
 主に、シリアルI/F (uart)経由で表示を制御できるようにする、といった機能追加がメインです。
 空中配線で制作すると、たいへん安上がりです。
@@ -12,8 +14,8 @@ LPC1114を利用して作成できるワンキーゲーム機、IchigoDotのフ�
 
 その他、徐々に機能を拡張したいと思います。
 
-以下、taisukefが開発したIchigoDotのREADME.mdです。
---------------------
+以下、taisukefさんが開発したIchigoDotのREADME.mdです。
+
 IchigoDot
 =========
 
