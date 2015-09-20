@@ -1,8 +1,9 @@
 ### Project name (also used for output file name)
-PROJECT	= out
+PROJECT	= IchigoDotS
 
 ### Source files and search directories
-CSRC	= main.c startup1100.c uart.c xprintf.c iap.c
+CSRC = 	main.c startup1100.c uart.c xprintf.c iap.c psg.c utils.c matrixled.c \
+		apps.c app_animate.c app_renda.c app_hit10.c app_mikuji.c app_uart.c
  # uart.c iic.c xprintf.c disp.c ball_img.c 
 ASRC	=
 CSRCARM	=

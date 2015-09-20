@@ -1,5 +1,8 @@
+#ifndef _AMIN_ICHIGODOT
+#define _AMIN_ICHIGODOT
+
 #define LEN_DATA_ANIM 50
-const unsigned char DATA_ANIM[] = {
+const char DATA_ANIM[] = {
 	0b00000000,
 	0b00000000,
 	0b00000000,
@@ -38,10 +41,10 @@ const unsigned char DATA_ANIM[] = {
 	0b10000100,
 	0b10011110,
 	0b10100100,
-	0b00000000,
-	0b00000000,
-	0b00000000,
-	0b00000000,
+	0b10000000,
+	0b10100100,
+	0b10101010,
+	0b10010010,
 	0b00000000,
 	0b00000000,
 	0b00000000,
@@ -51,3 +54,5 @@ const unsigned char DATA_ANIM[] = {
 	0b00000000,
 	0b00000000
 };
+
+#endif
