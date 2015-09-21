@@ -19,6 +19,6 @@ void app_bitman();
 #define PTN_1  "001828080808083c" // 1
 #define PTN_GO "0073958585b59576" // GO
 
-extern char* PTN_NUM[];
+extern const char* PTN_NUM[];
 
 #endif _APPS

@@ -26,6 +26,21 @@ void app_bitman() {
 
 	set_matrix(data);
 	playMML("CDE2CDE2");
+
+	// Bitman_Title added by 後田浩さん Thanks !
+	for (;;) {
+		FILL("1A1A3C58583C2424"); // title
+		FLUSH();
+		if (ux_btn()) break;
+	}
+	set_systick(0);
+	for (;;) {
+		WAIT(10);
+		if (!ux_state()) break;
+		if (get_systick() > 10000) return;
+	}
+	// end_of_Bitman_Title
+
 	WAIT(1000);
 	set_systick(0);
 	for (;;) {
@@ -36,7 +51,7 @@ void app_bitman() {
 			set_systick(0);	
 		}
 		if (ux_state()) {
-			if (exit_count == 3) return;
+			if (exit_count == 2) return;
 			if (exit_triger == get_systick()) exit_count++;
 			if (exit_triger == 0) {
 				playMML("C8");

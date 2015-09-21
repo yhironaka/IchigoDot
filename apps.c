@@ -13,7 +13,7 @@
 
 #include "apps.h"
 
-char* PTN_NUM[] = {
+const char* PTN_NUM[] = {
 	"708898a8c8887000", // 0
 	"2060a0202020f800", // 1
 	"7088080830c0f800", // 2
