@@ -37,28 +37,35 @@ MATLED SHOW 183C7EFFFF7E3C18
 #include "uart.h"
 #include "iap.h"
 
+// フレームの全体長
 #define LEN_DATA 1024
-#define N_FRAME ((LEN_DATA - 8) / 10)
 
+// フレーム総数
+#define N_FRAME ((LEN_DATA - 8) / 10)
+//                           ^    ^ struct Frameの大きさ
+//                           | save_tagの大きさ
+
+// SAVEデータ識別タグ
 const char *save_tag = "MATLED01";
 
 // ----- struct -----
+// 1画面分のデータ
 struct Frame {
 	char frame[8];
 	short waitms;
 };
 
+// Saveデータ全体 識別フラグ付き
 struct Save_data {
 	char header[8];
 	struct Frame frame[N_FRAME];
 };
 
-//struct Frame* 	fr[N_FRAME];
-//char 	g_data[LEN_DATA];
-
+// Saveデータエリア初期化
 void init_frame(struct Save_data *sd) {
 	struct Frame *fr = sd->frame;
 
+	// 識別フラグをコピー
 	memcpy(sd->header, save_tag, 8);
 
 	for (int i = 0; i < N_FRAME; i++) {
@@ -73,16 +80,22 @@ void loadFlash(char* buf, int len) {
 
 boolean load(struct Save_data *sd) {
 	loadFlash((char *)sd, LEN_DATA);
+
+//	memcpy(sd, SAVED_FLASH, LEN_DATA);
+
 	if (startsWith(sd->header, save_tag)) {
-		println(save_tag);
 		return true;
 	}
 	init_frame(sd);
 	return false;
 }
 
-void save(struct Save_data *sd) {
-	saveFlash((char *) sd, LEN_DATA);
+int save(struct Save_data *sd) {
+	// 識別フラグをコピー
+	memcpy(sd->header, save_tag, 8);
+
+	// データを保存
+	return saveFlash((char *) sd, LEN_DATA);
 }
 
 void show(const char *input_buf , char *data) {
@@ -132,8 +145,8 @@ void set_anim(const char *input_buf , char *data , struct Frame *fr) {
 		int n = indexOf(pbuf, ' ');
 		if (n >= 0) {
 			pbuf += n + 1;			// 表示データ取得
-			decode_top2bottom(pbuf, fr[nf].frame);
-			decode_top2bottom(pbuf, data); 	// 停止時の画面にも表示
+			decode_left2right(pbuf, fr[nf].frame);
+			decode_left2right(pbuf, data); 	// 停止時の画面にも表示
 			n = indexOf(pbuf, ' ');
 			int nw = 100;
 			if (n >= 0) {
@@ -152,6 +165,7 @@ void app_uart() {
 	int		mode = 0;		// 0: 停止状態 1: RUN状態
 	int		cnt = 0;		// RUN時のwaitカウンタ
 	int		nframe = 0;		// 実行中のフレーム番号
+	int		ret = 0;		// コマンド実行結果
 	char	data[8];		// 表示バッファ
 
 	static struct Save_data sd;
@@ -190,12 +204,12 @@ void app_uart() {
 					println("STOP");
 				} else if (startsWith(input_buf, "MATLED SAVE")) {
 					mode = 0;
-					save(&sd);
-					println("SAVE");
+					ret = save(&sd);
+					xprintf("SAVE %d\n", ret);
 				} else if (startsWith(input_buf, "MATLED LOAD")) {
 					mode = 0;
-					load(&sd);
-					println("LOAD");
+					ret = load(&sd);
+					xprintf("LOAD %d\n", 1 - ret);
 				} else if (startsWith(input_buf, "MATLED BREAK")) {
 					println("BREAK");
 					return;
@@ -211,13 +225,19 @@ void app_uart() {
 		}
 		if (mode == 0) {
 			set_matrix(data);
-		} else {
+		} else if(mode == 1) {
 			set_matrix(fr[nframe].frame);
 			WAIT(1);
 			cnt++;
 			if (cnt >= fr[nframe].waitms) { // 待ち時間を過ぎたら
 				cnt = 0;
 
+				// 次に接続されているマトリクスに送るデータ
+				xprintf("MATLED SHOW ");
+				for (int j = 0 ; j < 8 ; j++) xprintf("%02X", fr[nframe].frame[j]);
+				xprintf("\n");
+
+				// 次のフレームに切り替え
 				nframe++;
 				if (nframe == N_FRAME || fr[nframe].waitms == 0) nframe = 0;	// ループして最初から
 			}

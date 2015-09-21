@@ -23,32 +23,12 @@ int 	g_bkuxbtn = 0;
 int 	g_timenobtn = 0;
 volatile int 	g_systick;
 
-boolean ux_state() {
-	return GPIO1MASKED[1 << 4] == 0;
-}
-
 int get_systick() {
 	return g_systick;
 }
 
 void set_systick(int systick) {
 	g_systick = systick;
-}
-
-void ux_tick() {
-	int btn = ux_state();
-	if (btn && !g_bkuxbtn) {
-		g_uxbtn = 1;
-	}
-	g_bkuxbtn = btn;
-}
-
-boolean ux_btn() {
-	if (g_uxbtn) {
-		g_uxbtn = 0;
-		return 1;
-	}
-	return 0;
 }
 
 void ux_init() {
@@ -60,7 +40,27 @@ void ux_init() {
 	psg_init();
 }
 
-void initUART() {
+void ux_tick() {
+	int btn = ux_state();
+	if (btn && !g_bkuxbtn) {
+		g_uxbtn = 1;
+	}
+	g_bkuxbtn = btn;
+}
+
+boolean ux_state() {
+	return GPIO1MASKED[1 << 4] == 0;
+}
+
+boolean ux_btn() {
+	if (g_uxbtn) {
+		g_uxbtn = 0;
+		return 1;
+	}
+	return 0;
+}
+
+void uart_init() {
 	uart0_init();
 	xdev_out(uart0_putc);
 	xdev_in(uart0_getc);
@@ -68,7 +68,7 @@ void initUART() {
 	xprintf("Ichigo Dot S Ver.%s\n" , VERSION_NUM);
 }
 
-void InitSysTick(int hz) {
+void SysTick_init(int hz) {
 	SYST_RVR = SYSCLK / hz - 1;
 	SYST_CSR = 0x07;
 }
@@ -117,8 +117,8 @@ void no_sleep() {
 int main() {
 	matrixled_init();
 	ux_init();	
-	InitSysTick(12000);	// 12,000,000Hz 12,000 -> 10 = 1ms	
-	initUART();
+	SysTick_init(12000);	// 12,000,000Hz 12,000 -> 10 = 1ms	
+	uart_init();
 
 	for (;;) {
 		if (!ux_state()) break;

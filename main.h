@@ -6,7 +6,7 @@ main.h
 
 #include "utils.h"
 
-#define VERSION_NUM "0.8.2" 
+#define VERSION_NUM "0.8.3" 
 
 #define TYPE 0 // 通常
 //#define TYPE 1 // マトリクスLEDの位置、間違えた時
