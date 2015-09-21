@@ -37,29 +37,8 @@ MATLED SHOW 183C7EFFFF7E3C18
 #include "uart.h"
 #include "iap.h"
 
-// フレームの全体長
-#define LEN_DATA 1024
-
-// フレーム総数
-#define N_FRAME ((LEN_DATA - 8) / 10)
-//                           ^    ^ struct Frameの大きさ
-//                           | save_tagの大きさ
-
 // SAVEデータ識別タグ
 const char *save_tag = "MATLED01";
-
-// ----- struct -----
-// 1画面分のデータ
-struct Frame {
-	char frame[8];
-	short waitms;
-};
-
-// Saveデータ全体 識別フラグ付き
-struct Save_data {
-	char header[8];
-	struct Frame frame[N_FRAME];
-};
 
 // Saveデータエリア初期化
 void init_frame(struct Save_data *sd) {
