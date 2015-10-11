@@ -1,3 +1,7 @@
 make
+make -f MakefileR0
 make -f MakefileR1
+make -f MakefileR3
+cp ./objr0/IchigoDotS_R0.hex ./obj/
 cp ./objr1/IchigoDotS_R1.hex ./obj/
+cp ./objr3/IchigoDotS_R3.hex ./obj/

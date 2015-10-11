@@ -1,5 +1,5 @@
 ### Project name (also used for output file name)
-PROJECT	= IchigoDotS_R2
+PROJECT	= IchigoDotS_R0
 
 ### Source files and search directories
 CSRC = 	main.c startup1100.c uart.c xprintf.c iap.c psg.c utils.c matrixled.c \
@@ -40,7 +40,7 @@ ADEFS	=
 WARNINGS = all extra
 
 ### Object output directory
-OBJDIR = obj
+OBJDIR = objr0
 
 
 ### Programs to build porject
@@ -81,8 +81,7 @@ CFLAGS += $(addprefix -W,$(WARNINGS))
 CFLAGS += $(addprefix -I,$(INCDIRS))
 CFLAGS += $(addprefix -D,$(DEFS))
 CFLAGS += -Wp,-M,-MP,-MT,$(OBJDIR)/$(*F).o,-MF,$(OBJDIR)/$(*F).d
-CFLAGS += -DROTATE=2
-
+CFLAGS += -DROTATE=0
 
 # Assembler flags
 ASFLAGS += $(addprefix -D,$(ADEFS)) -Wa,-g$(DEBUG)
