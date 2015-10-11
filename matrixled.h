@@ -38,4 +38,6 @@ void CLS(int n);
 void FILL(const char *hex_string);
 void FLUSH();
 
+extern short g_rotate;
+
 #endif

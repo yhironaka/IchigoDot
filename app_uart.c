@@ -192,6 +192,10 @@ void app_uart() {
 				} else if (startsWith(input_buf, "MATLED BREAK")) {
 					println("BREAK");
 					return;
+				} else if (startsWith(input_buf, "MATLED ROTATE ")) {
+					char* pbuf = (char *)input_buf + 14;
+					g_rotate = parseInt(pbuf);
+					println((char *)input_buf + 7);
 				} else {	// 不明なコマンドは、後続に接続されている器械にパススルーする。
 					println(input_buf);
 				}

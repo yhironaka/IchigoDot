@@ -23,6 +23,7 @@ short 	g_d0def = 0;
 short 	g_d1def = 0;
 short 	g_d0mask = 0;
 short 	g_d1mask = 0;
+short   g_rotate = ROTATE;
 
 // -- LEDタイプ間違え対応 --
 #if TYPE == 0
@@ -107,19 +108,22 @@ void matrixled_on(int x, int y) {
 	if (y > 7)	y = 7;
 	
 	// rotate
-#if ROTATE == 0
-	x = 7 - x;
-#elif ROTATE == 2
-	y = 7 - y;
-#elif ROTATE == 1
-	int t = x;
-	x = y;
-	y = t;
-#elif ROTATE == 3
-	int t = x;
-	x = 7 - y;
-	y = 7 - t;
-#endif
+	if (g_rotate == 0) {
+		x = 7 - x;
+	}
+	else if (g_rotate == 2) {
+		y = 7 - y;
+	}
+	else if (g_rotate == 1) {
+		int t = x;
+		x = y;
+		y = t;
+	}
+	else if (g_rotate == 3) {
+		int t = x;
+		x = 7 - y;
+		y = 7 - t;
+	}
 
 	// view	
 	int d0 = g_d0def; // 0b000000111100;
