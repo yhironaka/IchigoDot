@@ -1,0 +1,3 @@
+make
+make -f MakefileR1
+cp ./objr1/IchigoDotS_R1.hex ./obj/

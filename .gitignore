@@ -1,0 +1,4 @@
+obj/*
+objr1/*
+!obj/*.hex
+
