@@ -65,7 +65,7 @@ void uart_init() {
 	xdev_out(uart0_putc);
 	xdev_in(uart0_getc);
 
-	xprintf("Ichigo Dot S Ver.%s\n" , VERSION_NUM);
+	xprintf("IchigoDotS Ver.%s\n" , VERSION_NUM);
 }
 
 void SysTick_init(int hz) {
