@@ -23,6 +23,15 @@ int psgdeflen = 4;
 int sound[] = { 4545, 4290, 4049, 3822, 3607, 3405, 3214, 3033, 2863, 2702, 2551, 2407, 2272, 2145, 2024, 1911, 1803, 1702, 1607, 1516, 1431, 1351, 1275, 1203, 1136, 1072, 1012, 955, 901, 851, 803, 758, 715, 675, 637, 601, 568, 536, 506, 477, 450, 425, 401, 379, 357, 337, 318, 300, 284, 268, 253, 238, 225, 212, 200, 189, 178, 168, 159, 150, };
 int stdlen = 1000;
 
+void enableSounder(int n) {
+	soundon = n;
+	if (soundon) {
+		GPIO1DIR |= 1 << 5;
+	} else {
+		GPIO1DIR &= ~(1 << 5);
+	}
+}
+
 void toggleSounder() {
 	GPIO1MASKED[1 << 5] = ~GPIO1MASKED[1 << 5];
 }
@@ -50,6 +59,9 @@ void psg_init() {
 	psgmml = psgbuf;
 	psgwaitcnt = psgwaitcnt2 = 0;
 	
+	IOCON_PIO1_5 = 0x000000d0;
+	GPIO1DIR &= ~(1 << 5);
+	
 	__set_SYSAHBCLKCTRL(PCCT16B0, 1); // on 16bit timer 0
 	TMR16B0PR  = (SYSCLK / 1000000) - 1; // pre scaler
 	TMR16B0MR0 = 50;
@@ -65,7 +77,7 @@ void psg_tick() {
 	if (psgwaitcnt > 0) {
 		psgwaitcnt--;
 		if (psgwaitcnt == 0) {
-			soundon = 0;
+			enableSounder(0);
 		}
 		return;
 	}
@@ -79,7 +91,7 @@ void psg_tick() {
 		char c = *psgmml++;
 		if (c == 0) {
 			psgmml--;
-			soundon = 0;
+			enableSounder(0);
 			return;
 		} else if (c == '>') {
 			psgoct++;
@@ -155,11 +167,11 @@ void psg_tick() {
 		//
 		
 		if (t == -1 || t >= 5 * 12) {
-			soundon = 0;
+			enableSounder(0);
 		//		stopTimer();
 		} else {
 			TMR16B0MR0 = sound[t];
-			soundon = 1;
+			enableSounder(1);
 		}
 		psgwaitcnt = len * 800;
 		psgwaitcnt2 = psgwaitcnt / 8;
