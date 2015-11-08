@@ -72,7 +72,7 @@ void app_bitman() {
 
 	// Bitman_Title added by 後田浩さん Thanks !
 	for (;;) {
-		FILL("1A1A3C58583C2424"); // title
+		FILL("191A3C5898242466"); // title
 		FLUSH();
 		if (ux_btn()) break;
 	}

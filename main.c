@@ -19,9 +19,15 @@
 
 // ----- global variables -----
 int 	g_uxbtn = 0;
+int 	g_uxbtnret = 0;
 int 	g_bkuxbtn = 0;
 int 	g_timenobtn = 0;
+int		g_btncount = 0;
 volatile int 	g_systick;
+
+//チャタリング対策
+#define BTN_RESET 400
+
 
 int get_systick() {
 	return g_systick;
@@ -41,11 +47,18 @@ void ux_init() {
 }
 
 void ux_tick() {
+		if (g_btncount > 0) {
+		g_btncount--;
+		return;
+	}
 	int btn = ux_state();
 	if (btn && !g_bkuxbtn) {
 		g_uxbtn = 1;
+		g_uxbtnret = 1;
+		g_btncount = BTN_RESET;
 	}
 	g_bkuxbtn = btn;
+	
 }
 
 boolean ux_state() {
@@ -53,8 +66,8 @@ boolean ux_state() {
 }
 
 boolean ux_btn() {
-	if (g_uxbtn) {
-		g_uxbtn = 0;
+	if (g_uxbtnret) {
+		g_uxbtnret = 0;
 		return 1;
 	}
 	return 0;
